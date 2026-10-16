@@ -1,3 +1,5 @@
+
+#pragma once
 // I2C configuration
 #define I2C_PORT           I2C_NUM_0
 #define I2C_SDA_GPIO       GPIO_NUM_8
