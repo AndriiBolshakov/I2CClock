@@ -56,6 +56,8 @@ void app_main(void)
         ESP_LOGE(TAG, "DS1307 not found; check wiring/address");
     }
 
+    int last_rendered_second = -1;
+
     while (1) {
         if (has_rtc) {
             int year, month, day, hour, minute, second;
@@ -65,14 +67,18 @@ void app_main(void)
                 &hour, &minute, &second, s_rtc);
 
             if (err == ESP_OK) {
-                ESP_LOGI(TAG, "%04d-%02d-%02d %02d:%02d:%02d",
-                         year, month, day,
-                         hour, minute, second);
+                if (second != last_rendered_second) {
+                    ESP_LOGI(TAG, "%04d-%02d-%02d %02d:%02d:%02d",
+                             year, month, day,
+                             hour, minute, second);
 
-                if (has_oled) {
-                    oled_show_datetime(
-                        year, month, day,
-                        hour, minute, second);
+                    if (has_oled) {
+                        oled_show_datetime(
+                            year, month, day,
+                            hour, minute, second);
+                    }
+
+                    last_rendered_second = second;
                 }
             } else {
                 ESP_LOGE(TAG, "RTC read failed: %s",
@@ -80,6 +86,6 @@ void app_main(void)
             }
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

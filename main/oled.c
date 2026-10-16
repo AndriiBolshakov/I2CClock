@@ -86,7 +86,7 @@ void oled_show_datetime(
     draw_text_centered(
         s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 5, date_text, 1);
     draw_text_centered(
-        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 23, time_text, 2);
+        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 23, "HI:EMRE", 2);
     draw_text_centered(
         s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 51, "DS1307", 1);
 
