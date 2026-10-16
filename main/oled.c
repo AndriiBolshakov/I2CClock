@@ -64,7 +64,8 @@ void oled_init(uint8_t address)
 
 void oled_show_datetime(
     int year, int month, int day,
-    int hour, int minute, int second)
+    int hour, int minute, int second,
+    bool show_colons)
 {
     static const char *months[] = {
         "???", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -80,13 +81,16 @@ void oled_show_datetime(
     snprintf(date_text, sizeof(date_text),
              "%02d %s %04d", day, month_name, year);
     snprintf(time_text, sizeof(time_text),
-             "%02d:%02d:%02d", hour, minute, second);
+             "%02d%c%02d%c%02d",
+             hour, show_colons ? ':' : ' ',
+             minute, show_colons ? ':' : ' ',
+             second);
 
     memset(s_framebuffer, 0, sizeof(s_framebuffer));
     draw_text_centered(
         s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 5, date_text, 1);
     draw_text_centered(
-        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 23, "HI:EMRE", 2);
+        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 23, time_text, 2);
     draw_text_centered(
         s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 51, "DS1307", 1);
 

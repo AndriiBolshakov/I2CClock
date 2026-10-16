@@ -4,6 +4,7 @@
 
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "i2c.h"
@@ -57,6 +58,8 @@ void app_main(void)
     }
 
     int last_rendered_second = -1;
+    int64_t last_second_render_us = 0;
+    bool colons_visible = false;
 
     while (1) {
         if (has_rtc) {
@@ -72,13 +75,25 @@ void app_main(void)
                              year, month, day,
                              hour, minute, second);
 
+                    colons_visible = true;
+                    last_second_render_us = esp_timer_get_time();
                     if (has_oled) {
                         oled_show_datetime(
                             year, month, day,
-                            hour, minute, second);
+                            hour, minute, second,
+                            colons_visible);
                     }
 
                     last_rendered_second = second;
+                } else if (colons_visible &&
+                           esp_timer_get_time() - last_second_render_us >= 500000) {
+                    colons_visible = false;
+                    if (has_oled) {
+                        oled_show_datetime(
+                            year, month, day,
+                            hour, minute, second,
+                            colons_visible);
+                    }
                 }
             } else {
                 ESP_LOGE(TAG, "RTC read failed: %s",
