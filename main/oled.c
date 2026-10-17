@@ -79,10 +79,7 @@ static int get_weekday(int year, int month, int day)
     return date.tm_wday;
 }
 
-void oled_show_datetime(
-    int year, int month, int day,
-    int hour, int minute, int second,
-    bool show_colons)
+void oled_show_datetime(oled_datetime_t datetime)
 {
     static const char *weekdays[] = {
         "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
@@ -90,24 +87,45 @@ void oled_show_datetime(
 
     char date_text[20];
     char time_text[12];
+    char temperature_text[20];
+    char pressure_text[20];
+    char humidity_text[20];
 
-    int weekday_index = get_weekday(year, month, day);
+    int weekday_index = get_weekday(
+        datetime.year, datetime.month, datetime.day);
 
     snprintf(date_text, sizeof(date_text),
-             "%s %02d.%02d.%04d", weekdays[weekday_index], day, month, year);
+             "%s %02d.%02d.%04d", weekdays[weekday_index],
+             datetime.day, datetime.month, datetime.year);
     snprintf(time_text, sizeof(time_text),
              "%02d%c%02d%c%02d",
-             hour, show_colons ? ':' : ' ',
-             minute, show_colons ? ':' : ' ',
-             second);
+             datetime.hour, datetime.show_colons ? ':' : ' ',
+             datetime.minute, datetime.show_colons ? ':' : ' ',
+             datetime.second);
 
     memset(s_framebuffer, 0, sizeof(s_framebuffer));
     draw_text_centered(
-        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 5, date_text, 1);
+        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 2, date_text, 1);
     draw_text_centered(
-        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 23, time_text, 2);
-    draw_text_centered(
-        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 51, "DS1307", 1);
+        s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 16, time_text, 2);
+    if (datetime.has_bme280_reading) {
+        snprintf(temperature_text, sizeof(temperature_text),
+                 "T:%5.1f C", datetime.temperature_c);
+        snprintf(pressure_text, sizeof(pressure_text),
+                 "P:%7.1f hPa", datetime.pressure_hpa);
+        snprintf(humidity_text, sizeof(humidity_text),
+                 "H:%5.1f%%", datetime.humidity_percent);
+
+        draw_text_centered(
+            s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 35, temperature_text, 1);
+        draw_text_centered(
+            s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 45, pressure_text, 1);
+        draw_text_centered(
+            s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 56, humidity_text, 1);
+    } else {
+        draw_text_centered(
+            s_framebuffer, OLED_WIDTH, OLED_HEIGHT, 47, "BME280 unavailable", 1);
+    }
 
     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(
         s_panel,

@@ -11,5 +11,7 @@
 #define ADDR_OLED          0x3C
 #define ADDR_OLED_ALT      0x3D
 #define ADDR_RTC           0x68
+#define ADDR_BME280        0x76
+#define ADDR_BME280_ALT    0x77
 
 static const char *TAG = "rtc_clock";
