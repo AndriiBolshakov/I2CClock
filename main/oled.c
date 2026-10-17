@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "config.h"
 #include "driver/i2c_master.h"
@@ -62,24 +63,38 @@ void oled_init(uint8_t address)
     ESP_LOGI(TAG, "SSD1306 initialized at address 0x%02X", address);
 }
 
+static int get_weekday(int year, int month, int day)
+{
+    struct tm date = {
+        .tm_year = year - 1900,
+        .tm_mon  = month - 1,
+        .tm_mday = day,
+        .tm_isdst = -1,
+    };
+
+    if (mktime(&date) == (time_t)-1) {
+        return -1;
+    }
+
+    return date.tm_wday;
+}
+
 void oled_show_datetime(
     int year, int month, int day,
     int hour, int minute, int second,
     bool show_colons)
 {
-    static const char *months[] = {
-        "???", "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+    static const char *weekdays[] = {
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
     };
 
     char date_text[20];
     char time_text[12];
 
-    const char *month_name =
-        (month >= 1 && month <= 12) ? months[month] : "???";
+    int weekday_index = get_weekday(year, month, day);
 
     snprintf(date_text, sizeof(date_text),
-             "%02d %s %04d", day, month_name, year);
+             "%s %02d.%02d.%04d", weekdays[weekday_index], day, month, year);
     snprintf(time_text, sizeof(time_text),
              "%02d%c%02d%c%02d",
              hour, show_colons ? ':' : ' ',
